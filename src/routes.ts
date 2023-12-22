@@ -2,9 +2,10 @@ import { Express, Request, Response, NextFunction } from "express";
 import { createUserHandler } from "./controller/user.controller";
 import validateResource from './middleware/validateResource'
 import { createUserSchema } from "./schema/user.schema";
-import logger from './utils/logger'
-import { createSessionHandler } from "./controller/session.controller";
+import { logStep } from './utils/logger'
+import { createSessionHandler, deleteSessionHandler, getUserSessionHandler } from "./controller/session.controller";
 import { createSessionSchema } from "./schema/session.schema";
+import requireUser from "./middleware/requireUser";
 
 function routes(app: Express) {
     app.get('/healthcheck', (req: Request, res: Response) => {
@@ -12,16 +13,29 @@ function routes(app: Express) {
     });
 
     app.post("/api/users",
-        (req: Request, res: Response, next: NextFunction) => { logger.info('Validating User'); next() },
+        logStep('Validating User'),
         validateResource(createUserSchema),
-        (req: Request, res: Response, next: NextFunction) => { logger.info('Creating User'); next() },
+        logStep('Creating User'),
         createUserHandler);
 
     app.post("/api/sessions",
-        (req: Request, res: Response, next: NextFunction) => { logger.info('Validating Session'); next() },
+        logStep('Validating Session'),
         validateResource(createSessionSchema),
-        (req: Request, res: Response, next: NextFunction) => { logger.info('Creating Session'); next() },
+        logStep('Creating Session'),
         createSessionHandler);
+
+
+    app.get("/api/sessions",
+        logStep('Requiring User'),
+        requireUser,
+        logStep('Getting  Session'),
+        getUserSessionHandler);
+
+    app.delete("/api/sessions",
+        logStep('Requiring User'),
+        requireUser,
+        logStep('Deleting  Session'),
+        deleteSessionHandler);
 
 
 }

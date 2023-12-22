@@ -1,5 +1,6 @@
 import logger from "pino";
 import dayjs from "dayjs";
+import { Request, Response, NextFunction } from "express";
 
 const log = logger({
     transport: {
@@ -17,3 +18,8 @@ const log = logger({
 });
 
 export default log;
+
+export const logStep = (message: string) => (req: Request, res: Response, next: NextFunction) => {
+    log.info(message);
+    next();
+}
